@@ -10,6 +10,9 @@ const app = express();
 // cookies
 const session = require("express-session");
 
+// flashing info
+const flash = require("connect-flash");
+
 // to use http mehods like (put, patch, delete)
 const methodOverride = require("method-override");
 
@@ -29,15 +32,15 @@ const passport = require("passport");
 const localStrategy = require("passport-local");
 
 // to start connection with mongodb
-// mongoose
-//     .connect(process.env.DATABASE_URL)
-//     .then(() => {
-//         console.log("MONGO CONNECTION OPEN!!!");
-//     })
-//     .catch((err) => {
-//         console.log("OH NO MONGO CONNECTION ERROR!!!!");
-//         console.log(err);
-//     });
+mongoose
+    .connect(process.env.DATABASE_URL)
+    .then(() => {
+        console.log("MONGO CONNECTION OPEN!!!");
+    })
+    .catch((err) => {
+        console.log("OH NO MONGO CONNECTION ERROR!!!!");
+        console.log(err);
+    });
 
 
 // Views folder and EJS setup
@@ -55,46 +58,45 @@ app.engine("ejs", ejsMate);
 // to use static files in public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// const sessionConfig = {
-//     // store sessions in db instead of memory
-//     store: MongoDBStore.create({
-//         mongoUrl: process.env.DATABASE_URL,
-//         secret: process.env.SECRET,
-//         touchAfter: 24 * 60 * 60 // not to save it every time the page is refreshed
-//     }),
-//     secret: process.env.SECRET,
-//     resave: false,
-//     saveUninitialized: true,
-//     cookie: {
-//         httpOnly: true,
-//         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-//         maxAge: 1000 * 60 * 60 * 24 * 7,
-//     },
-// };
-// app.use(session(sessionConfig));
+const sessionConfig = {
+    // store sessions in db instead of memory
+    store: MongoDBStore.create({
+        mongoUrl: process.env.DATABASE_URL,
+        secret: process.env.SECRET,
+        touchAfter: 24 * 60 * 60 // not to save it every time the page is refreshed
+    }),
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        httpOnly: true,
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+};
+app.use(session(sessionConfig));
+app.use(flash());
 
-// app.use(passport.initialize());
-// app.use(passport.session());
-// passport.use(new localStrategy(User.authenticate()));
-// passport.serializeUser(User.serializeUser());
-// passport.deserializeUser(User.deserializeUser());
+const Doctor = require("./models/doctor");
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(Doctor.authenticate()));
+passport.serializeUser(Doctor.serializeUser());
+passport.deserializeUser(Doctor.deserializeUser());
 
 // to send data to all templates (local variables)
-// app.use((req, res, next) => {
-//     res.locals.currentUser = req.user;
-//     res.locals.success = req.flash("success");
-//     res.locals.error = req.flash("error");
-//     next();
-// });
-
-// app.use("/", userRoutes);
-// app.use("/", postRoutes);
-// app.use("/request/", requestRoutes);
-// app.use("/chat/", chatRoutes);
-// app.use('/post/:postId/comments/', commentRoutes);
+app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    next();
+});
 
 const doctorRoutes = require("./routes/doctors");
+const authRoutes = require("./routes/auth");
+
 app.use("/doctor", doctorRoutes);
+app.use("/", authRoutes);
 
 app.all("*", (req, res, next) => {
     res.render("404");

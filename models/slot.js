@@ -8,6 +8,4 @@ const slotSchema = new mongoose.Schema({
   isHoliday: { type: Boolean, required: true, default: false },
 });
 
-const Slot = mongoose.model('Slot', slotSchema);
-
-module.exports = Slot;
+module.exports = mongoose.model('Slot', slotSchema);

@@ -12,12 +12,16 @@ const appointmentSchema = new mongoose.Schema({
     required: true 
   },
   date: { type: Date, required: true },
+  status: {
+    type: String, 
+    enum: ['Finished', 'Pending', 'Cancelled'],
+    required: true 
+  },
   duration: { type: Number, required: true },
   description: { type: String },
   cost: { type: Number, required: true }
 
 });
 
-const Appointment = mongoose.model('Appointment', appointmentSchema);
+module.exports = mongoose.model('Appointment', appointmentSchema);
 
-module.exports = Appointment;
