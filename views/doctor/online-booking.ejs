@@ -1,5 +1,56 @@
 <%- include('../partials/header') %>
 
-<h1>Online Booking</h1>
+<div class="container-fluid">
 
+   <!-- Content for adding a new appointment slot -->
+    <h1 class="mt-3">Add Appointment Slot</h1>
+    <form id="addSlotForm" class="mt-4" action="/doctor/slot" method="post">
+        <div class="row mb-3">
+            <label for="day" class="col-sm-2 col-form-label">Select Day:</label>
+            <div class="col-sm-4">
+            <select id="day" name="day" class="form-select">
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <!-- Add options for other days of the week -->
+            </select>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="startTime" class="col-sm-2 col-form-label">Start Time:</label>
+            <div class="col-sm-4">
+                <input type="time" id="startTime" name="startTime" class="form-control" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="endTime" class="col-sm-2 col-form-label">End Time:</label>
+            <div class="col-sm-4">
+                <input type="time" id="endTime" name="endTime" class="form-control" required>
+            </div>
+        </div>        
+        <div class="row mb-3">
+            <label for="duration" class="col-sm-2 col-form-label">Appointment Duration (in minutes):</label>
+            <div class="col-sm-4">
+            <input type="number" id="duration" name="duration" class="form-control" min="15" max="240" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="form-check mx-2">
+                <input class="form-check-input" type="checkbox" id="isHoliday" name="isHoliday">
+                <label class="form-check-label" for="isHoliday">Is Holiday</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <button type="submit" class="btn btn-success">Save Slot</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="/js/online-booking.js"></script>
 <%- include('../partials/footer') %>

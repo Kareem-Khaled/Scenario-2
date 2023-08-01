@@ -93,21 +93,8 @@ app.use(express.static(path.join(__dirname, "public")));
 // app.use("/chat/", chatRoutes);
 // app.use('/post/:postId/comments/', commentRoutes);
 
-app.get("/", (req, res) => {
-    res.render("doctor/index");
-});
-
-app.get("/doctor", (req, res) => {
-    res.render("doctor/index");
-});
-
-app.get("/history", (req, res) => {
-    res.render("doctor/history");
-});
-
-app.get("/online-booking", (req, res) => {
-    res.render("doctor/online-booking");
-});
+const doctorRoutes = require("./routes/doctors");
+app.use("/doctor", doctorRoutes);
 
 app.all("*", (req, res, next) => {
     res.render("404");
