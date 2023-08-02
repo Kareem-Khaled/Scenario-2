@@ -1,13 +1,39 @@
-const e = require('express');
 const Patient = require('../models/patient');
 const Doctor = require('../models/doctor');
+const Appointment = require('../models/appointment');
+const Slot = require('../models/slot');
 
 module.exports.render_index = async (req, res) => {
     res.render('patient/index', { page_name: 'index' });
 };
 
 module.exports.render_history = async (req, res) => {
-    res.render('patient/history', { page_name: 'history' });
+    const patient = await Patient.findOne({ info: req.user._id }).populate({
+        path: 'appointments',
+        populate: {
+            path: 'doctor',
+            populate: {
+                path: 'info',
+            },
+        },
+    })
+    const currentDate = new Date();
+    // Add one hour to the current time (summer time)
+    currentDate.setHours(currentDate.getHours() + 3);
+    patient.appointments.forEach((appointment) => {
+        const appointmentDate = new Date(appointment.slot.date);
+        const [hours, minutes] = appointment.slot.startTime.split(':');
+        const appointmentStartTime = new Date(appointmentDate);
+        appointmentStartTime.setHours(Number(hours) + 2);
+        appointmentStartTime.setMinutes(Number(minutes));
+      
+      if (appointmentStartTime < currentDate) {
+        appointment.status = 'Finished';
+      }
+    });
+    
+    await patient.save();
+    res.render('patient/history', { page_name: 'history', appointments: patient.appointments });
 };
 
 module.exports.render_online_booking = async (req, res) => {
@@ -15,4 +41,30 @@ module.exports.render_online_booking = async (req, res) => {
         path: 'info',
     });
     res.render('patient/online-booking', { page_name: 'online-booking', doctors });
+};
+
+module.exports.book_slot = async (req, res) => {
+    const {day, date, startTime, endTime, doctorId} = req.body;
+    let doctor = await Doctor.findById(doctorId);
+    let patient = await Patient.findOne({ info: req.user._id });
+    const slot = new Slot({
+        day,
+        date,
+        startTime,
+        endTime,
+    })
+    const appointment = new Appointment({
+        doctor: doctorId,
+        patient: patient._id,
+        status: 'Upcoming',
+        slot,
+        cost: doctor.appointmentCost,
+    });
+    await appointment.save();
+    doctor.appointments.push(appointment);
+    patient.appointments.push(appointment);
+    await doctor.save();
+    await patient.save();
+    req.flash('success', 'Appointment booked successfully!');
+    res.redirect('/patient');
 };

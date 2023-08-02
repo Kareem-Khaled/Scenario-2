@@ -6,7 +6,12 @@ const patientSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "User"
   },
-  history: []
+  appointments: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Appointment"
+    }
+  ]
 });
 
 module.exports = mongoose.model('Patient', patientSchema);

@@ -1,37 +1,50 @@
 <%- include('../partials/header') %>
 <style>
-    /* Custom CSS for hover effect and link styles */
-    .card {
-      transition: transform 0.2s;
-      text-decoration: none; /* Remove underline for all links inside cards */
-    }
-    .card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .card-link{
-      color: inherit; /* Inherit the default text color (no specific link color) */
-      text-decoration: none; /* Remove underline on hover, focus, and active */
-    }
-  </style>
- <div class="container-fluid">
-    <h1>Book An Appointment</h1>
-    <div class="row">
-      <% for (let slot of slots) { %>
-        <div class="col-md-4 mb-5">
-          <a href="/doctor/#" class="card text-decoration-none card-link">
-            <div class="card text-white bg-success">
-              <div class="card-body">
-                <h4 class="card-title"><%= slot.day %></h4>
-                <h5 class="card-title"><%= slot.startTime %> : <%= slot.endTime %></h5>
-                <p class="card-text"> </p>
-              </div>
-
+  /* Custom CSS for hover effect and link styles */
+  .card {
+    transition: transform 0.2s;
+    text-decoration: none;
+    cursor: pointer; /* Add cursor pointer to indicate clickability */
+  }
+  .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>
+<div class="container-fluid">
+  <h1><%- (slots.length === 0 ? 'No Slots Available' : 'Book An Appointment') %></h1>
+  <div class="row">
+    <% for (let slot of slots) { %>
+      <div class="col-md-4 mb-5">
+        <!-- Wrap each card content with a <form> tag -->
+        <form action="/patient/book-slot" method="POST">
+          <!-- Hidden input fields to pass the data -->
+          <input type="hidden" name="day" value="<%= slot.day %>">
+          <input type="hidden" name="date" value="<%= slot.date %>">
+          <input type="hidden" name="startTime" value="<%= slot.startTime %>">
+          <input type="hidden" name="endTime" value="<%= slot.endTime %>">
+          <input type="hidden" name="doctorId" value="<%= doctorId %>">
+          
+          <div class="card text-white <%- (slot.isBooked ? 'bg-danger': 'bg-success') %>">
+            <div class="card-body">
+              <p class="card-text">
+                <div class="h4"><%= slot.day %></div>
+                <div class="h6"><b><%= slot.date %></b></div>
+              </p>
+              <h5 class="card-title"><%= slot.startTime %> : <%= slot.endTime %></h5>
+              <!-- Use a button with type="submit" to trigger form submission -->
+              <% if (!slot.isBooked) { %>
+                <button type="submit" class="btn btn-outline-light">Click me to book</button>
+              <% }else{ %>
+                <button class="btn btn-outline-light" disabled>Booked</button>
+              <% } %>
             </div>
-          </a>
-        </div>
-      <% } %>
-    </div>
+          </div>
+        </form>
+      </div>
+    <% } %>
   </div>
+</div>
+
 <script src="/js/online-booking.js"></script>
 <%- include('../partials/footer') %>

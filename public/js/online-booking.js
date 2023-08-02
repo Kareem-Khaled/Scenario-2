@@ -48,11 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
           startTimeInput.disabled = false;
           endTimeInput.disabled = false;
           duration.disabled = false;
+          isHolidayCheckbox.checked = false;
           startTimeInput.value = slot.startTime;
           endTimeInput.value = slot.endTime;
           duration.value = slot.duration;
         }
         else{
+          isHolidayCheckbox.checked = true;
           startTimeInput.disabled = true;
           endTimeInput.disabled = true;
           duration.disabled = true;

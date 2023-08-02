@@ -7,7 +7,33 @@ module.exports.render_index = async (req, res) => {
 };
 
 module.exports.render_history = async (req, res) => {
-    res.render('doctor/history', { page_name: 'history' });
+    const doctor = await Doctor.findOne({ info: req.user._id }).populate({
+        path: 'appointments',
+        populate: {
+            path: 'patient',
+            populate: {
+                path: 'info',
+            },
+        },
+    })
+
+    const currentDate = new Date();
+    // Add one hour to the current time (summer time)
+    currentDate.setHours(currentDate.getHours() + 3);
+    doctor.appointments.forEach((appointment) => {
+        const appointmentDate = new Date(appointment.slot.date);
+        const [hours, minutes] = appointment.slot.startTime.split(':');
+        const appointmentStartTime = new Date(appointmentDate);
+        appointmentStartTime.setHours(Number(hours) + 2);
+        appointmentStartTime.setMinutes(Number(minutes));
+      
+      if (appointmentStartTime < currentDate) {
+        appointment.status = 'Finished';
+      }
+    });
+    
+    await doctor.save();
+    res.render('doctor/history', { page_name: 'history', appointments: doctor.appointments });
 };
 
 module.exports.render_online_booking = async (req, res) => {
@@ -27,8 +53,11 @@ module.exports.get_slots = async (req, res) => {
 };
 
 module.exports.veiw_slots = async (req, res) => {
-    const doctor = await Doctor.findById(req.params.doctorId).populate({
+    const doctor = await Doctor.findById(req.params.doctorId)
+    .populate({
         path: 'slots',
+    }).populate({
+        path: 'appointments',
     });
     const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
     let coming = [], past = [];
@@ -44,12 +73,18 @@ module.exports.veiw_slots = async (req, res) => {
         }
     }
     coming.push(...past);
-    // const now = new Date();
-    // Get the current time in hours, minutes, and seconds
-    // const currentHours = now.getHours();
-    // const currentMinutes = now.getMinutes();
-    // console.log(currentHours, currentMinutes);
-    res.render('patient/book-slot', { page_name: '', slots: coming });
+    doctor.appointments.forEach((doctorAppointment) => {
+        let matchingAppointment = coming.find((comingAppointment) =>
+            doctorAppointment.slot.day === comingAppointment.day &&
+            doctorAppointment.slot.startTime === comingAppointment.startTime &&
+            doctorAppointment.slot.endTime === comingAppointment.endTime
+        );
+        if (matchingAppointment) {
+            matchingAppointment.isBooked = true;
+        }
+    });
+
+    res.render('patient/book-slot', { page_name: '', slots: coming, doctorId: req.params.doctorId });
 };
 
 module.exports.save_slot = async (req, res) => {
@@ -92,26 +127,36 @@ module.exports.save_slot = async (req, res) => {
 
 function calculateTimeSlots(startTime, endTime, duration, day) {
     let slots = [];
+    const currentDate = new Date();
+    // Add one hour to the current time (summer time)
+    currentDate.setHours(currentDate.getHours() + 3);
+
     let [hours, minutes] = startTime.split(":");
     let startMinutes = parseInt(hours) * 60 + parseInt(minutes);
 
     [hours, minutes] = endTime.split(":");
     let endMinutes = parseInt(hours) * 60 + parseInt(minutes);
     while (startMinutes + duration <= endMinutes) {
-        let a = parseInt(startMinutes / 60);
-        let b = parseInt(startMinutes % 60);
-        let c = parseInt((startMinutes + duration) / 60);
-        let d = (startMinutes + duration) % 60;
-        slots.push({
-            day,
-            startTime: `${(a < 10 ? "0" + a : a)}:${(b < 10 ? "0" + b : b)}`,
-            endTime: `${(c < 10 ? "0" + c : c)}:${(d < 10 ? "0" + d : d)}`,
-            isBooked: false
-        });
+        let a = parseInt(startMinutes / 60).toString().padStart(2, '0');
+        let b = parseInt(startMinutes % 60).toString().padStart(2, '0');
+        let c = parseInt((startMinutes + duration) / 60).toString().padStart(2, '0');
+        let d = ((startMinutes + duration) % 60).toString().padStart(2, '0');
+        
+        const appointmentStartTime = new Date(getNextDayDate(day));
+        appointmentStartTime.setHours(Number(a) + 2);
+        appointmentStartTime.setMinutes(Number(b));
+        if (appointmentStartTime >= currentDate) {
+            slots.push({
+                day,
+                date: getNextDayDate(day),
+                startTime: `${a}:${b}`,
+                endTime: `${c}:${d}`,
+                isBooked: false
+            });
+        }
         startMinutes += duration;
         startMinutes %= (24 * 60);
     }
-  
     return slots;
   }
 
@@ -126,4 +171,27 @@ function calculateTimeSlots(startTime, endTime, duration, day) {
     }
   
     return day1Index < day2Index;
+  }
+
+  function getNextDayDate(dayName) {
+    const now = new Date();
+    const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
+  
+    if (dayIndex === -1) {
+      return null;
+    }
+  
+    const currentDayIndex = now.getDay();
+  
+    let daysUntilNextDay = dayIndex - currentDayIndex;
+    if (daysUntilNextDay <= 0) {
+      daysUntilNextDay += (daysUntilNextDay === 0 ? 0 : 7);
+    }
+  
+    now.setDate(now.getDate() + daysUntilNextDay);
+
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const year = now.getFullYear();
+    return `${month} / ${day} / ${year}`;
   }

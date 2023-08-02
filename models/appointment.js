@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
 const appointmentSchema = new mongoose.Schema({
   doctor: { 
@@ -11,15 +12,21 @@ const appointmentSchema = new mongoose.Schema({
     ref: 'Patient', 
     required: true 
   },
-  date: { type: Date, required: true },
   status: {
     type: String, 
-    enum: ['Finished', 'Pending', 'Cancelled'],
+    enum: ['Finished', 'Upcoming', 'Cancelled'],
     required: true 
   },
-  duration: { type: Number, required: true },
-  description: { type: String },
-  cost: { type: Number, required: true }
+  slot: {
+    type: Schema.Types.Mixed,
+  },
+  description: { 
+    type: String 
+  },
+  cost: { 
+    type: Number, 
+    required: true 
+  }
 
 });
 

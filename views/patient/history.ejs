@@ -13,28 +13,23 @@
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>
-                                            <th>Age</th>
+                                            <th>Doctor Name</th>
                                             <th>Date</th>
+                                            <th>Start Time</th>
                                             <th>Price</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>Tiger Nixon</td>
-                                            <td>61</td>
-                                            <td>2011 / 04 / 25</td>
-                                            <td><b>$320,800</b></td>
-                                            <td width="100%" class = "btn-icon-split btn-warning">Pending</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Donna Snider</td>
-                                            <td>27</td>
-                                            <td>2011 / 01 / 25</td>
-                                            <td><b>$112,000</b></td>
-                                            <td width="100%" class = "btn-icon-split btn-success">Finished</td>
-                                        </tr>
+                                        <% for(let appointment of appointments) { %>
+                                            <tr>
+                                                <td><%= appointment.doctor.info.username %></td>
+                                                <td><%= appointment.slot.date %></td>
+                                                <td><%= appointment.slot.startTime %></td>
+                                                <td><b>$<%= appointment.cost %></b></td>
+                                                <td width="100%" class = "btn-icon-split <%- (appointment.status == 'Upcoming' ? 'btn-warning' : 'btn-success') %>"><%- appointment.status %></td>
+                                            </tr>
+                                        <% } %>
                                     </tbody>
                                 </table>
                             </div>

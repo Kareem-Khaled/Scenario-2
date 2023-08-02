@@ -10,8 +10,10 @@ router.route("/")
 router.route("/history")
         .get(isLoggedIn, patient.render_history);
 
-router.route("/online-booking/")
+router.route("/online-booking")
         .get(isLoggedIn, patient.render_online_booking);
 
+router.route("/book-slot")
+        .post(isLoggedIn, patient.book_slot);
 
 module.exports = router;

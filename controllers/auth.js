@@ -37,7 +37,8 @@ module.exports.register = async (req, res, next) => {
             const doctor = new Doctor({
                 info: user,
                 specialty: 'General',
-                slots: []
+                slots: [],
+                appointments: []
             });
             await doctor.save();
             req.login(registeredUser, err => {
@@ -48,7 +49,7 @@ module.exports.register = async (req, res, next) => {
         else{
             const patient = new Patient({
                 info: user,
-                history: []
+                appointments: []
             });
             await patient.save();
             req.login(registeredUser, err => {
@@ -63,9 +64,14 @@ module.exports.register = async (req, res, next) => {
 };
 
 module.exports.login = async (req, res) => {
-    // const user = await Doctor.findById(req.user._id);
-    req.flash('success', `Welcome back ${req.user.username}!!!`);
-    res.redirect(`/doctor`);
+    const {isDoctor, username} = req.user;
+    req.flash('success', `Welcome back ${ (isDoctor? 'Dr.' : '' ) + username}!!!`);
+    if(isDoctor){
+        res.redirect('/doctor');
+    }
+    else{
+        res.redirect('/patient');
+    }
 };
 
 module.exports.logout = async (req, res, next) => {

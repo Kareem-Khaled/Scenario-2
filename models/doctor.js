@@ -12,7 +12,19 @@ const doctorSchema = new mongoose.Schema({
         ref: "Slot"
     }
   ],
-  specialty: { type: String }
+  appointments: [
+    {
+        type: Schema.Types.ObjectId,
+        ref: "Appointment"
+    }
+  ],
+  specialty: { 
+    type: String
+  },
+  appointmentCost: {
+    type: Number,
+    default: 10
+  }
 });
 
 module.exports = mongoose.model('Doctor', doctorSchema);
