@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+<style>
+    /* Custom CSS for hover effect and link styles */
+    .card {
+      transition: transform 0.2s;
+      text-decoration: none; /* Remove underline for all links inside cards */
+    }
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .card-link{
+      color: inherit; /* Inherit the default text color (no specific link color) */
+      text-decoration: none; /* Remove underline on hover, focus, and active */
+    }
+  </style>
+ <div class="container-fluid">
+    <h1>Book An Appointment</h1>
+    <div class="row">
+      <% for (let slot of slots) { %>
+        <div class="col-md-4 mb-5">
+          <a href="/doctor/#" class="card text-decoration-none card-link">
+            <div class="card text-white bg-success">
+              <div class="card-body">
+                <h4 class="card-title"><%= slot.day %></h4>
+                <h5 class="card-title"><%= slot.startTime %> : <%= slot.endTime %></h5>
+                <p class="card-text"> </p>
+              </div>
+
+            </div>
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+<script src="/js/online-booking.js"></script>
+<%- include('../partials/footer') %>

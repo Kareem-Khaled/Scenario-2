@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+<style>
+    /* Custom CSS for hover effect and link styles */
+    .card {
+      transition: transform 0.2s;
+      text-decoration: none; /* Remove underline for all links inside cards */
+    }
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .card-link{
+      color: inherit; /* Inherit the default text color (no specific link color) */
+      text-decoration: none; /* Remove underline on hover, focus, and active */
+    }
+  </style>
+ <div class="container-fluid">
+    <div class="row">
+      <% for (let doctor of doctors) { %>
+        <div class="col-md-4 mb-5">
+          <a href="/doctor/<%= doctor._id %>" class="card text-decoration-none card-link">
+            <div class="card">
+              <img src="/img/<%= doctor.info.image %>" class="card-img-top img-fluid" alt="Card Image" style="max-height: 120px;">
+              <div class="card-body">
+                <h5 class="card-title"><%= doctor.info.username %></h5>
+                <p class="card-text"><%= doctor.specialty %> </p>
+              </div>
+              <div class="card-footer">
+                +123 456 7890
+              </div>
+            </div>
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+<script src="/js/online-booking.js"></script>
+<%- include('../partials/footer') %>

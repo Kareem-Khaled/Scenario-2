@@ -1,5 +1,6 @@
-const e = require('express');
+const User = require('../models/user');
 const Doctor = require('../models/doctor');
+const Patient = require('../models/patient');
 
 module.exports.render_register = async (req, res) => {
     res.render('authentication/register');
@@ -19,17 +20,41 @@ module.exports.register = async (req, res, next) => {
         if(password != cpassword){
             throw new Error("The two passwords aren't identical");   
         }
-        if(userType == 'doctor'){
-            const doctor = new Doctor({username, email, gender});
-            const registeredUser = await Doctor.register(doctor, password);
+        const isDoctor = userType === 'doctor';
+        let image = "undraw_profile_0.svg";
+        if(!isDoctor && gender == 'female'){
+            image = "undraw_profile_1.svg";
+        }
+        else if(isDoctor && gender == 'male'){
+            image = "undraw_profile_2.svg";
+        }
+        else if(isDoctor){
+            image = "undraw_profile_3.svg";
+        }
+        const user = new User({username, email, gender, isDoctor, image});
+        const registeredUser = await User.register(user, password);
+        if(isDoctor){
+            const doctor = new Doctor({
+                info: user,
+                specialty: 'General',
+                slots: []
+            });
+            await doctor.save();
             req.login(registeredUser, err => {
                 if (err) return next(err);
                 res.redirect('/doctor');
             })
         }
         else{
-    
-            res.redirect('/doctor');
+            const patient = new Patient({
+                info: user,
+                history: []
+            });
+            await patient.save();
+            req.login(registeredUser, err => {
+                if (err) return next(err);
+                res.redirect('/patient');
+            })
         }
     }catch(err){
         req.flash('error', err.message);

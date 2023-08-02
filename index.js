@@ -77,12 +77,13 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 
-const Doctor = require("./models/doctor");
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(new localStrategy(Doctor.authenticate()));
-passport.serializeUser(Doctor.serializeUser());
-passport.deserializeUser(Doctor.deserializeUser());
+
+const User = require("./models/user");
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 // to send data to all templates (local variables)
 app.use((req, res, next) => {
@@ -93,9 +94,11 @@ app.use((req, res, next) => {
 });
 
 const doctorRoutes = require("./routes/doctors");
+const patientRoutes = require("./routes/patient");
 const authRoutes = require("./routes/auth");
 
 app.use("/doctor", doctorRoutes);
+app.use("/patient", patientRoutes);
 app.use("/", authRoutes);
 
 app.all("*", (req, res, next) => {

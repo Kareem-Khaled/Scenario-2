@@ -8,9 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-
-    <title>Doctor</title>
-
+    <% const isDoctor = currentUser.isDoctor; %>
+    <title><% (isDoctor ? 'Doctor Dashboard' : 'Patient Dashboard') %></title>
     <!-- Custom fonts for this template-->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
@@ -23,7 +22,9 @@
 </head>
 
 <body id="page-top">
-
+    <% if(currentUser){ %> 
+        <input id = 'currentUser' type="hidden" value="<%= currentUser._id %>">
+    <% } %>
     <!-- Page Wrapper -->
     <div id="wrapper">
 
@@ -31,11 +32,12 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/doctor">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= (isDoctor ? '/doctor' : '/patient') %>">
                 <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-stethoscope"></i>
+                    <i class="fas <%= (isDoctor ? 'fa-stethoscope' : 'fa-file-medical') %>"></i>
+                    <!-- <i class="fa-solid "></i> -->
                 </div>
-                <div class="sidebar-brand-text mx-3">Doctor Dashboard</div>
+                <div class="sidebar-brand-text mx-3"><%= (isDoctor ? 'Doctor' : 'Patient') %> Dashboard</div>
             </a>
 
             <!-- Divider -->
@@ -43,7 +45,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item <%= (page_name == 'index' ? 'active' : '' ) %>">
-                <a class="nav-link" href="/doctor">
+                <a class="nav-link" href="<%= (isDoctor ? '/doctor' : '/patient') %>">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
@@ -51,13 +53,13 @@
             <!-- Nav Item - Tables -->
             
             <li class="nav-item <%= (page_name == 'online-booking' ? 'active' : '' ) %>">
-                <a class="nav-link" href="/doctor/online-booking">
+                <a class="nav-link" href="<%= (isDoctor ? '/doctor' : '/patient') %>/online-booking">
                     <i class="fas fa-fw fa-clock"></i>
                     <span>Online Booking</span></a>
             </li>
             
             <li class="nav-item <%= (page_name == 'history' ? 'active' : '' ) %>">
-                <a class="nav-link" href="/doctor/history">
+                <a class="nav-link" href="<%= (isDoctor ? '/doctor' : '/patient') %>/history">
                     <i class="fas fa-fw fa-table"></i>
                     <span>History</span></a>
             </li>
@@ -101,13 +103,13 @@
                                 <% 
                                     let username = "Dr.Kareem Khaled";
                                     if(currentUser){
-                                        username = 'Dr.' + currentUser.username;
+                                        username = (isDoctor ? 'Dr.' : '') + currentUser.username;
                                     }
                                 %>
                                  
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"><b><%= username %></b></span>
                                 <img class="img-profile rounded-circle"
-                                    src="/img/undraw_profile.svg">
+                                    src='/img/<%= currentUser.image %>'>
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
