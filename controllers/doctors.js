@@ -1,13 +1,11 @@
 const e = require('express');
 const Doctor = require('../models/doctor');
+const User = require('../models/user');
 const Slot = require('../models/slot');
+const {calculateTimeSlots, removeExpiredAppointments} = require('./methods.js');
 
 module.exports.render_index = async (req, res) => {
-    res.render('doctor/index', { page_name: 'index' });
-};
-
-module.exports.render_history = async (req, res) => {
-    const doctor = await Doctor.findOne({ info: req.user._id }).populate({
+    let doctor = await Doctor.findOne({ info: req.user._id }).populate({
         path: 'appointments',
         populate: {
             path: 'patient',
@@ -16,24 +14,45 @@ module.exports.render_history = async (req, res) => {
             },
         },
     })
+    await removeExpiredAppointments(doctor);
+    res.render('doctor/index', { page_name: 'index' });
+};
 
-    const currentDate = new Date();
-    // Add one hour to the current time (summer time)
-    currentDate.setHours(currentDate.getHours() + 3);
-    doctor.appointments.forEach((appointment) => {
-        const appointmentDate = new Date(appointment.slot.date);
-        const [hours, minutes] = appointment.slot.startTime.split(':');
-        const appointmentStartTime = new Date(appointmentDate);
-        appointmentStartTime.setHours(Number(hours) + 2);
-        appointmentStartTime.setMinutes(Number(minutes));
-      
-      if (appointmentStartTime < currentDate) {
-        appointment.status = 'Finished';
-      }
-    });
-    
+module.exports.render_profile = async (req, res) => {
+    const doctor = await Doctor.findOne({ info: req.user._id }).populate({
+        path: 'info',
+    })
+    res.render('doctor/profile', { page_name: 'profile', doctor });
+}
+
+module.exports.save_profile = async (req, res) => {
+    const {specialty, appointmentCost, phone, location} = req.body;
+    const doctor = await Doctor.findOne({ info: req.user._id }).populate({
+        path: 'info',
+    })
+    doctor.specialty = specialty;
+    doctor.appointmentCost = appointmentCost;
+    const user = await User.findById(req.user._id );
+    user.phone = phone;
+    user.location = location;
     await doctor.save();
-    res.render('doctor/history', { page_name: 'history', appointments: doctor.appointments });
+    await user.save();
+    req.flash('success', 'Your profile has been updated');
+    res.redirect('/doctor');
+}
+
+module.exports.render_history = async (req, res) => {
+    let doctor = await Doctor.findOne({ info: req.user._id }).populate({
+        path: 'appointments',
+        populate: {
+            path: 'patient',
+            populate: {
+                path: 'info',
+            },
+        },
+    })
+    let appointments = await removeExpiredAppointments(doctor);
+    res.render('doctor/history', { page_name: 'history', appointments });
 };
 
 module.exports.render_online_booking = async (req, res) => {
@@ -60,19 +79,13 @@ module.exports.veiw_slots = async (req, res) => {
         path: 'appointments',
     });
     const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
-    let coming = [], past = [];
+    let coming = [];
     for (let slot of doctor.slots) {
         if(!slot.isHoliday){
             let temp = calculateTimeSlots(slot.startTime, slot.endTime, slot.duration, slot.day);
-            if(isDayBefore(today, slot.day)){
-                past.push(...temp);
-            }
-            else{
-                coming.push(...temp);
-            }
+            coming.push(...temp);
         }
     }
-    coming.push(...past);
     doctor.appointments.forEach((doctorAppointment) => {
         let matchingAppointment = coming.find((comingAppointment) =>
             doctorAppointment.slot.day === comingAppointment.day &&
@@ -83,7 +96,11 @@ module.exports.veiw_slots = async (req, res) => {
             matchingAppointment.isBooked = true;
         }
     });
-
+    coming.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA - dateB;
+    });
     res.render('patient/book-slot', { page_name: '', slots: coming, doctorId: req.params.doctorId });
 };
 
@@ -125,73 +142,62 @@ module.exports.save_slot = async (req, res) => {
     res.redirect('/doctor/online-booking');
 };
 
-function calculateTimeSlots(startTime, endTime, duration, day) {
-    let slots = [];
+module.exports.get_doctor_dashboard = async (req, res) => {
+    const doctor = await Doctor.findOne({ info: req.params.doctorId })
+    .populate({
+        path: 'appointments',
+        populate: {
+            path: 'patient',
+            populate: {
+                path: 'info',
+            },
+        },
+    })
+
+    let allAppointments = doctor.appointments.length;
+    const finishedAppointments = doctor.appointments.filter(appointment => appointment.status === 'Finished');
+    let pendingAppointments = allAppointments - finishedAppointments.length;
+    let appointmentsPercentage = (finishedAppointments.length  * 100 / allAppointments) || 0;
+
+    let male = 0, female = 0, totalEarnings = 0, monthEarnings = 0, ages = new Array(5).fill(0);
     const currentDate = new Date();
-    // Add one hour to the current time (summer time)
-    currentDate.setHours(currentDate.getHours() + 3);
+    const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const currentYear = currentDate.getFullYear();
 
-    let [hours, minutes] = startTime.split(":");
-    let startMinutes = parseInt(hours) * 60 + parseInt(minutes);
-
-    [hours, minutes] = endTime.split(":");
-    let endMinutes = parseInt(hours) * 60 + parseInt(minutes);
-    while (startMinutes + duration <= endMinutes) {
-        let a = parseInt(startMinutes / 60).toString().padStart(2, '0');
-        let b = parseInt(startMinutes % 60).toString().padStart(2, '0');
-        let c = parseInt((startMinutes + duration) / 60).toString().padStart(2, '0');
-        let d = ((startMinutes + duration) % 60).toString().padStart(2, '0');
-        
-        const appointmentStartTime = new Date(getNextDayDate(day));
-        appointmentStartTime.setHours(Number(a) + 2);
-        appointmentStartTime.setMinutes(Number(b));
-        if (appointmentStartTime >= currentDate) {
-            slots.push({
-                day,
-                date: getNextDayDate(day),
-                startTime: `${a}:${b}`,
-                endTime: `${c}:${d}`,
-                isBooked: false
-            });
+    finishedAppointments.forEach(appointment => {
+        if (appointment.patient.info.gender === 'male') {
+            male++;
+        } else {
+            female++;
         }
-        startMinutes += duration;
-        startMinutes %= (24 * 60);
-    }
-    return slots;
-  }
+        if(appointment.patient.info.age < 20){
+            ages[0]++;
+        }
+        else if(appointment.patient.info.age <= 30){
+            ages[1]++;
+        }
+        else if(appointment.patient.info.age <= 40){
+            ages[2]++;
+        }
+        else if(appointment.patient.info.age <= 50){
+            ages[3]++;
+        }
+        else{
+            ages[4]++;
+        }
+        const [month, day, year] = appointment.slot.date.split(' / ');
+        if(month == currentMonth && year == currentYear){
+            monthEarnings += appointment.cost;
+        }
+        totalEarnings += appointment.cost;
+    });
 
-  function isDayBefore(day1, day2) {
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const day1Index = days.indexOf(day1);
-    const day2Index = days.indexOf(day2);
-  
-    // If either of the days is not found, return false or handle the case as per your requirement
-    if (day1Index === -1 || day2Index === -1) {
-      return false;
-    }
-  
-    return day1Index < day2Index;
-  }
-
-  function getNextDayDate(dayName) {
-    const now = new Date();
-    const dayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dayName);
-  
-    if (dayIndex === -1) {
-      return null;
-    }
-  
-    const currentDayIndex = now.getDay();
-  
-    let daysUntilNextDay = dayIndex - currentDayIndex;
-    if (daysUntilNextDay <= 0) {
-      daysUntilNextDay += (daysUntilNextDay === 0 ? 0 : 7);
-    }
-  
-    now.setDate(now.getDate() + daysUntilNextDay);
-
-    const day = now.getDate().toString().padStart(2, '0');
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const year = now.getFullYear();
-    return `${month} / ${day} / ${year}`;
-  }
+    res.status(200).send({
+        ages,
+        totalEarnings, 
+        monthEarnings,
+        pendingAppointments,
+        gender:[male, female],
+        appointmentsPercentage
+    });
+}

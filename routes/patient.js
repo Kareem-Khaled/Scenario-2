@@ -1,19 +1,19 @@
 const express = require('express');
 const patient = require('../controllers/patient');
-const { isLoggedIn } = require('../middleware');
+const { isLoggedIn, isPatient } = require('../middleware');
 
 const router = express.Router();
 
 router.route("/")
-        .get(isLoggedIn, patient.render_index);
+        .get(isLoggedIn, isPatient, patient.render_index);
 
 router.route("/history")
-        .get(isLoggedIn, patient.render_history);
+        .get(isLoggedIn, isPatient, patient.render_history);
 
 router.route("/online-booking")
-        .get(isLoggedIn, patient.render_online_booking);
+        .get(isLoggedIn, isPatient, patient.render_online_booking);
 
 router.route("/book-slot")
-        .post(isLoggedIn, patient.book_slot);
+        .post(isLoggedIn, isPatient, patient.book_slot);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const Patient = require('../models/patient');
 const Doctor = require('../models/doctor');
 const Appointment = require('../models/appointment');
 const Slot = require('../models/slot');
+const { removeExpiredAppointments } = require('./methods');
 
 module.exports.render_index = async (req, res) => {
     res.render('patient/index', { page_name: 'index' });
@@ -17,22 +18,8 @@ module.exports.render_history = async (req, res) => {
             },
         },
     })
-    const currentDate = new Date();
-    // Add one hour to the current time (summer time)
-    currentDate.setHours(currentDate.getHours() + 3);
-    patient.appointments.forEach((appointment) => {
-        const appointmentDate = new Date(appointment.slot.date);
-        const [hours, minutes] = appointment.slot.startTime.split(':');
-        const appointmentStartTime = new Date(appointmentDate);
-        appointmentStartTime.setHours(Number(hours) + 2);
-        appointmentStartTime.setMinutes(Number(minutes));
-      
-      if (appointmentStartTime < currentDate) {
-        appointment.status = 'Finished';
-      }
-    });
     
-    await patient.save();
+    let appointments = await removeExpiredAppointments(patient);
     res.render('patient/history', { page_name: 'history', appointments: patient.appointments });
 };
 

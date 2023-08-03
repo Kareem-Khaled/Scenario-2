@@ -23,10 +23,14 @@
               <img src="/img/<%= doctor.info.image %>" class="card-img-top img-fluid" alt="Card Image" style="max-height: 120px;">
               <div class="card-body">
                 <h5 class="card-title"><%= doctor.info.username %></h5>
-                <p class="card-text"><%= doctor.specialty %> </p>
+                <div class="d-flex justify-content-between">
+                  <p class="card-text"><%= doctor.specialty %></p>
+                  <p class="card-text text-right">$<%= doctor.appointmentCost %></p>
+                </div>                
+                <p><%= doctor.info.location %></p>
               </div>
               <div class="card-footer">
-                +123 456 7890
+                <%= doctor.info.phone %>
               </div>
             </div>
           </a>

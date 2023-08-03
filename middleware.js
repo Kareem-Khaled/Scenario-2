@@ -5,3 +5,19 @@ module.exports.isLoggedIn = (req, res, next) => {
     }
     next();
 }
+
+module.exports.isDoctor = (req, res, next) => {
+    if(!req.user.isDoctor) {
+        req.flash('error', 'You can\'t access this page!');
+        return res.redirect('/patient');
+    }
+    next();
+}
+
+module.exports.isPatient = (req, res, next) => {
+    if(req.user.isDoctor) {
+        req.flash('error', 'You can\'t access this page!');
+        return res.redirect('/doctor');
+    }
+    next();
+}
