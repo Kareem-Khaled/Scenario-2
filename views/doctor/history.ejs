@@ -22,15 +22,20 @@
                                     </thead>
                                     <tbody>
                                         <% for(let appointment of appointments) { %>
-                                            <tr>
-                                                <td><%= appointment.patient.info.username %></td>
-                                                <td><%= appointment.slot.date %></td>
-                                                <td><%= appointment.slot.startTime %></td>
-                                                <td><b>$<%= appointment.cost %></b></td>
-                                                <td width="100%" class = "btn-icon-split <%- (appointment.status == 'Upcoming' ? 'btn-warning' : 'btn-success') %>"><%- appointment.status %></td>
-                                            </tr>
+                                          <tr>
+                                            <td>
+                                              <a href="/patient/<%- appointment.patient.info._id %>">
+                                                <%= appointment.patient.info.username %>
+                                              </a>
+                                            </td>
+                                            <td><%= appointment.slot.date %></td>
+                                            <td><%= appointment.slot.startTime %></td>
+                                            <td><b>$<%= appointment.cost %></b></td>
+                                            <td width="100%" class="btn-icon-split <%- (appointment.status == 'Upcoming' ? 'btn-warning' : 'btn-success') %>"><%- appointment.status %></td>
+                                          </tr>
                                         <% } %>
-                                    </tbody>
+                                      </tbody>
+                                      
                                 </table>
                             </div>
                         </div>

@@ -21,7 +21,11 @@
             <label for="location">Location:</label>
             <input type="text" class="form-control" id="location" name="location" placeholder="Enter location" value="<%= doctor.info.location %>">
           </div>
-          <button type="submit" class="btn btn-primary my-4">Submit</button>
+          <div class="form-group">
+            <label for="brief">Brief:</label>
+            <textarea class="form-control" id="brief" name="brief" placeholder="Enter brief" rows="3"><%= doctor.brief %></textarea>
+          </div>          
+          <button type="submit" class="btn btn-primary my-4">Save</button>
     </form>
 </div>
 

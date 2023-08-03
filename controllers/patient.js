@@ -1,12 +1,49 @@
 const Patient = require('../models/patient');
 const Doctor = require('../models/doctor');
+const User = require('../models/user');
 const Appointment = require('../models/appointment');
 const Slot = require('../models/slot');
 const { removeExpiredAppointments } = require('./methods');
 
 module.exports.render_index = async (req, res) => {
-    res.render('patient/index', { page_name: 'index' });
+    const patientId = (req.params.patientId || req.user._id);
+    const patient = await Patient.findOne({ info: patientId }).populate({
+        path: 'appointments'
+    })
+    const allAppointments = patient.appointments.length;
+    let finishedAppointments = patient.appointments.filter(appointment => appointment.status === 'Finished');
+    let totalCost = finishedAppointments.reduce((total, appointment) => total + appointment.cost, 0);
+    
+    let pendingAppointments = allAppointments - finishedAppointments.length;
+    let finishedAppointmentsPercentage = (finishedAppointments.length  * 100 / allAppointments) || 0;
+    let pendingAppointmentsPercentage = (pendingAppointments.length  * 100 / allAppointments) || 0;
+    
+    finishedAppointments = [finishedAppointments.length, parseInt(finishedAppointmentsPercentage)];
+    pendingAppointments = [pendingAppointments, parseInt(pendingAppointmentsPercentage)];
+    
+    res.render('patient/index', { page_name: 'index', patient, totalCost, finishedAppointments, pendingAppointments });
 };
+
+module.exports.render_profile = async (req, res) => {
+    const patient = await Patient.findOne({ info: req.user._id });
+    res.render('patient/profile', { page_name: 'profile', patient});
+}
+
+module.exports.save_profile = async (req, res) => {
+    const {age, bloodType, phone, location} = req.body;
+    const patient = await Patient.findOne({ info: req.user._id }).populate({
+        path: 'info',
+    })
+    patient.age = age;
+    patient.bloodType = bloodType;
+    const user = await User.findById(req.user._id );
+    user.phone = phone;
+    user.location = location;
+    await patient.save();
+    await user.save();
+    req.flash('success', 'Your profile has been updated');
+    res.redirect('/patient');
+}
 
 module.exports.render_history = async (req, res) => {
     const patient = await Patient.findOne({ info: req.user._id }).populate({

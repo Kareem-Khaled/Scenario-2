@@ -21,3 +21,14 @@ module.exports.isPatient = (req, res, next) => {
     }
     next();
 }
+
+module.exports.isNotLoggedIn = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        req.flash('error', 'You are already signed in!');
+        if(req.user.isDoctor) {
+            return res.redirect('/doctor');
+        }
+        return res.redirect('/patient');
+    }
+    next();
+}

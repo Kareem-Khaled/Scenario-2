@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <% const isDoctor = currentUser.isDoctor; %>
-    <title><% (isDoctor ? 'Doctor Dashboard' : 'Patient Dashboard') %></title>
+    <title>AppNest <%- (isDoctor ? 'Doctor' : 'Patient') %></title>
     <!-- Custom fonts for this template-->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
@@ -114,7 +114,7 @@
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="/doctor/profile">
+                                <a class="dropdown-item" href="<%- (isDoctor ? '/doctor' : '/patient') %>/profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Profile
                                 </a>

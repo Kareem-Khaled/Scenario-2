@@ -24,6 +24,9 @@ const doctorSchema = new mongoose.Schema({
   appointmentCost: {
     type: Number,
     default: 10
+  },
+  brief: {
+    type: String,
   }
 });
 

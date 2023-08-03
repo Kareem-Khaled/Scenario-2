@@ -26,12 +26,13 @@ module.exports.render_profile = async (req, res) => {
 }
 
 module.exports.save_profile = async (req, res) => {
-    const {specialty, appointmentCost, phone, location} = req.body;
+    const {specialty, appointmentCost, phone, location, brief} = req.body;
     const doctor = await Doctor.findOne({ info: req.user._id }).populate({
         path: 'info',
     })
     doctor.specialty = specialty;
     doctor.appointmentCost = appointmentCost;
+    doctor.brief = brief;
     const user = await User.findById(req.user._id );
     user.phone = phone;
     user.location = location;
@@ -78,7 +79,7 @@ module.exports.veiw_slots = async (req, res) => {
     }).populate({
         path: 'appointments',
     });
-    const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+
     let coming = [];
     for (let slot of doctor.slots) {
         if(!slot.isHoliday){
