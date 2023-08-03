@@ -1,4 +1,4 @@
-# AppNest Scenario-2-Assignment (Some Pages):
+# AppNest Scenario-2-Assignment (some pages):
 
 <img src="https://github.com/Kareem-Khaled/Scenario-2/assets/53629881/f9bfb89d-e2d8-477a-b15a-9d7a3a433e5f">
 
