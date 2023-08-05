@@ -53,15 +53,17 @@ module.exports.calculateTimeSlots = (startTime, endTime, duration, day) => {
         currentDate.setHours(currentDate.getHours() + 3);
         user.appointments.forEach(async (appointment) => {
             const appointmentDate = new Date(appointment.slot.date);
-            const [hours, minutes] = appointment.slot.startTime.split(':');
-            const appointmentStartTime = new Date(appointmentDate);
-            appointmentStartTime.setHours(Number(hours) + 2);
-            appointmentStartTime.setMinutes(Number(minutes));
+            const [hours, minutes] = appointment.slot.endTime.split(':');
+            const appointmentEndTime = new Date(appointmentDate);
+            appointmentEndTime.setHours(Number(hours) + 2);
+            appointmentEndTime.setMinutes(Number(minutes));
         
-        if (appointmentStartTime < currentDate) {
+        if (appointmentEndTime < currentDate) {
             let Updatedappointment = await Appointment.findById(appointment._id);
-            Updatedappointment.status = 'Finished';
-            await Updatedappointment.save();
+            if(Updatedappointment.status != 'Finished'){
+                Updatedappointment.status = 'Reporting';
+                await Updatedappointment.save();
+              }
         }
     });
     return user.appointments;

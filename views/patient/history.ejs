@@ -14,9 +14,10 @@
                                     <thead>
                                         <tr>
                                             <th>Doctor Name</th>
-                                            <th>Date</th>
+                                            <th>Time</th>
                                             <th>Start Time</th>
                                             <th>Price</th>
+                                            <th>Report</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -25,9 +26,24 @@
                                             <tr>
                                                 <td><%= appointment.doctor.info.username %></td>
                                                 <td><%= appointment.slot.date %></td>
-                                                <td><%= appointment.slot.startTime %></td>
+                                                <td><%= appointment.slot.startTime %> - <%= appointment.slot.endTime %></td>
                                                 <td><b>$<%= appointment.cost %></b></td>
-                                                <td width="100%" class = "btn-icon-split <%- (appointment.status == 'Upcoming' ? 'btn-warning' : 'btn-success') %>"><%- appointment.status %></td>
+                                                <% if(appointment.status != 'Finished') { %>
+                                                    <td>no report yet</td>
+                                                  <% }else{ %>
+                                                    <td>
+                                                      <a href="/patient/report/<%- appointment._id %>">
+                                                        view report
+                                                      </a>
+                                                    </td>
+                                                  <% } %>
+                                                <td width="100%" class = "btn-icon-split 
+                                                    <%-
+                                                        (appointment.status == 'Pending' ? 'btn-warning' :
+                                                        (appointment.status == 'Reporting' ? 'btn-primary' : 'btn-success'))
+                                                    %>"
+                                                >
+                                                <%- appointment.status %></td>
                                             </tr>
                                         <% } %>
                                     </tbody>

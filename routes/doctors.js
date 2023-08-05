@@ -20,12 +20,12 @@ router.route('/slot')
 
 router.route('/slot/:doctorId')
         .get(doctors.get_slots);
-
-router.route('/:doctorId')
-        .get(doctors.veiw_slots);
-
+        
 router.route('/dashboard/:doctorId')
         .get(doctors.get_doctor_dashboard);
+
+router.route('/slots/:doctorId')
+        .get(doctors.veiw_slots);
 
 router.route("/")
         .get(isLoggedIn, isDoctor, doctors.render_index);

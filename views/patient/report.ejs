@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+   <!-- Content for adding a new appointment slot -->
+    <h1 class="mt-3">report</h1>
+    <%- include('../partials/flash') %>
+    <form id="profileForm" class="mt-4" action="/patient/report/<%= appointment._id %>" method="post">
+      <div class="row">
+          <div class="form-group col-md-6">
+            <label for="doctor">Doctor:</label>
+            <input type="text" class="form-control" id="doctor" name="doctor" disabled value="<%= appointment.doctor.info.username %>">
+          </div>
+          <div class="form-group col-md-6">
+            <label for="patient">Patient:</label>
+            <input type="text" class="form-control" id="patient" name="patient" disabled value="<%= appointment.patient.info.username %>">
+          </div>  
+        </div>
+        <div class="form-group">
+          <label for="report">Report:</label>
+          <textarea class="form-control" id="report" name="report" <%- (appointment.doctor.info._id.toString() != currentUser._id.toString() ? 'disabled' : '') %> placeholder="Enter report..." rows="4"><%= appointment.report %></textarea>
+        </div>
+        <% if(appointment.doctor.info._id.toString() == currentUser._id.toString()){ %>
+          <button type="submit" class="btn btn-primary my-4">Save</button>
+        <% } %>
+    </form>
+</div>
+
+<%- include('../partials/footer') %>

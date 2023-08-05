@@ -14,13 +14,13 @@ const appointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String, 
-    enum: ['Finished', 'Upcoming', 'Cancelled'],
+    enum: ['Finished', 'Pending', 'Cancelled', 'Reporting'],
     required: true 
   },
   slot: {
     type: Schema.Types.Mixed,
   },
-  description: { 
+  report: { 
     type: String 
   },
   cost: { 

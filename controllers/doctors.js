@@ -80,6 +80,7 @@ module.exports.veiw_slots = async (req, res) => {
         path: 'appointments',
     });
 
+    console.log(doctor.slots);
     let coming = [];
     for (let slot of doctor.slots) {
         if(!slot.isHoliday){
@@ -171,16 +172,16 @@ module.exports.get_doctor_dashboard = async (req, res) => {
         } else {
             female++;
         }
-        if(appointment.patient.info.age < 20){
+        if(appointment.patient.age < 20){
             ages[0]++;
         }
-        else if(appointment.patient.info.age <= 30){
+        else if(appointment.patient.age <= 30){
             ages[1]++;
         }
-        else if(appointment.patient.info.age <= 40){
+        else if(appointment.patient.age <= 40){
             ages[2]++;
         }
-        else if(appointment.patient.info.age <= 50){
+        else if(appointment.patient.age <= 50){
             ages[3]++;
         }
         else{
