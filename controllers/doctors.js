@@ -80,7 +80,6 @@ module.exports.veiw_slots = async (req, res) => {
         path: 'appointments',
     });
 
-    console.log(doctor.slots);
     let coming = [];
     for (let slot of doctor.slots) {
         if(!slot.isHoliday){

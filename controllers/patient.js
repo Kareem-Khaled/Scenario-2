@@ -119,3 +119,60 @@ module.exports.book_slot = async (req, res) => {
     req.flash('success', 'Appointment booked successfully!');
     res.redirect('/patient');
 };
+
+
+// Function to generate the PDF
+const PDFDocument = require('pdfkit');
+module.exports.generate_report = async (req, res) => {
+    const patient = await Patient.findOne({ info: req.user._id }).populate('info')
+    .populate({
+        path: 'appointments',
+        populate: [
+            {
+                path: 'doctor',
+                populate: {
+                    path: 'info',
+                },
+            },
+            {
+                path: 'slot',
+            },
+        ],
+    });
+    const doc = new PDFDocument();
+    const filename = `${patient.info.username}_report.pdf`;
+
+    // Set the headers to make the PDF downloadable
+    res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-type', 'application/pdf');
+
+    // Pipe the PDF content directly to the response stream for download
+    doc.pipe(res);
+
+    // Add content to the PDF document
+    doc.fontSize(18).text(`${patient.info.username} Report`, { underline: true, align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`Age: ${patient.age}`);
+    doc.fontSize(14).text(`Blood Type: ${patient.bloodType}`);
+    doc.moveDown(4);
+
+    doc.fontSize(16).text('Appointment Details:', { underline: true, align: 'center' });
+    let printLine = 0;
+    for (const appointment of patient.appointments) {
+        const doctor = appointment.doctor;
+        doc.moveDown();
+        if(printLine){
+            doc.strokeColor('black').lineWidth(2).moveTo(doc.x * 3, doc.y).lineTo(doc.page.width - doc.x * 2 - doc.page.margins.right, doc.y).stroke();
+            doc.moveDown();
+        }
+        doc.fontSize(14).text(`Date: ${appointment.slot.date}`);
+        doc.fontSize(14).text(`Doctor: ${doctor.info.username}`);
+        doc.fontSize(14).text(`Specialty: ${doctor.specialty}`);
+        doc.fontSize(14).text(`Report: ${appointment.report}`);
+        doc.moveDown();
+        printLine = 1;    
+    }
+
+    doc.end(); // End the PDF document
+
+};

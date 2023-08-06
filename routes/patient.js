@@ -17,6 +17,9 @@ router.route("/online-booking")
 router.route("/book-slot")
         .post(isLoggedIn, isPatient, patient.book_slot);
 
+router.route("/generate-report")
+        .get(isLoggedIn, isPatient, patient.generate_report);
+
 router.route("/report/:appointmentId")
         .get(isLoggedIn, patient.render_report)
         .post(isLoggedIn, patient.save_report);
